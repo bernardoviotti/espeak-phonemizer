@@ -1,0 +1,214 @@
+{
+  "ar_JO": {
+    "espeakVoice": "ar",
+    "dictLang": "ar"
+  },
+  "bg_BG": {
+    "espeakVoice": "bg",
+    "dictLang": "bg"
+  },
+  "bn_BD": {
+    "espeakVoice": "bn",
+    "dictLang": "bn"
+  },
+  "ca_ES": {
+    "espeakVoice": "ca",
+    "dictLang": "ca"
+  },
+  "cs_CZ": {
+    "espeakVoice": "cs",
+    "dictLang": "cs"
+  },
+  "cy_GB": {
+    "espeakVoice": "cy",
+    "dictLang": "cy"
+  },
+  "da_DK": {
+    "espeakVoice": "da",
+    "dictLang": "da"
+  },
+  "de_DE": {
+    "espeakVoice": "de",
+    "dictLang": "de"
+  },
+  "el_GR": {
+    "espeakVoice": "el",
+    "dictLang": "el"
+  },
+  "en_GB": {
+    "espeakVoice": "en-gb-x-rp",
+    "dictLang": "en"
+  },
+  "en_US": {
+    "espeakVoice": "en-us",
+    "dictLang": "en"
+  },
+  "es_AR": {
+    "espeakVoice": "es-419",
+    "dictLang": "es"
+  },
+  "es_ES": {
+    "espeakVoice": "es",
+    "dictLang": "es"
+  },
+  "es_MX": {
+    "espeakVoice": "es-419",
+    "dictLang": "es"
+  },
+  "et_EE": {
+    "espeakVoice": "et",
+    "dictLang": "et"
+  },
+  "eu_ES": {
+    "espeakVoice": "eu",
+    "dictLang": "eu"
+  },
+  "fa_IR": {
+    "espeakVoice": "fa",
+    "dictLang": "fa"
+  },
+  "fi_FI": {
+    "espeakVoice": "fi",
+    "dictLang": "fi"
+  },
+  "fr_FR": {
+    "espeakVoice": "fr",
+    "dictLang": "fr"
+  },
+  "hi_IN": {
+    "espeakVoice": "hi",
+    "dictLang": "hi"
+  },
+  "hu_HU": {
+    "espeakVoice": "hu",
+    "dictLang": "hu"
+  },
+  "hy_AM": {
+    "espeakVoice": "hy",
+    "dictLang": "hy"
+  },
+  "id_ID": {
+    "espeakVoice": "id",
+    "dictLang": "id"
+  },
+  "is_IS": {
+    "espeakVoice": "is",
+    "dictLang": "is"
+  },
+  "it_IT": {
+    "espeakVoice": "it",
+    "dictLang": "it"
+  },
+  "ka_GE": {
+    "espeakVoice": "ka",
+    "dictLang": "ka"
+  },
+  "kk_KZ": {
+    "espeakVoice": "kk",
+    "dictLang": "kk"
+  },
+  "ko_KR": {
+    "espeakVoice": "ko",
+    "dictLang": "ko"
+  },
+  "ku_TR": {
+    "espeakVoice": "ku",
+    "dictLang": "ku"
+  },
+  "lb_LU": {
+    "espeakVoice": "lb",
+    "dictLang": "lb"
+  },
+  "lv_LV": {
+    "espeakVoice": "lv",
+    "dictLang": "lv"
+  },
+  "ml_IN": {
+    "espeakVoice": "ml",
+    "dictLang": "ml"
+  },
+  "mr_IN": {
+    "espeakVoice": "mr",
+    "dictLang": "mr"
+  },
+  "ne_NP": {
+    "espeakVoice": "ne",
+    "dictLang": "ne"
+  },
+  "nl_BE": {
+    "espeakVoice": "nl",
+    "dictLang": "nl"
+  },
+  "nl_NL": {
+    "espeakVoice": "nl",
+    "dictLang": "nl"
+  },
+  "no_NO": {
+    "espeakVoice": "nb",
+    "dictLang": "no"
+  },
+  "pl_PL": {
+    "espeakVoice": "pl",
+    "dictLang": "pl"
+  },
+  "pt_BR": {
+    "espeakVoice": "pt-br",
+    "dictLang": "pt"
+  },
+  "pt_PT": {
+    "espeakVoice": "pt",
+    "dictLang": "pt"
+  },
+  "ro_RO": {
+    "espeakVoice": "ro",
+    "dictLang": "ro"
+  },
+  "ru_RU": {
+    "espeakVoice": "ru",
+    "dictLang": "ru"
+  },
+  "sk_SK": {
+    "espeakVoice": "sk",
+    "dictLang": "sk"
+  },
+  "sl_SI": {
+    "espeakVoice": "sl",
+    "dictLang": "sl"
+  },
+  "sq_AL": {
+    "espeakVoice": "sq",
+    "dictLang": "sq"
+  },
+  "sr_RS": {
+    "espeakVoice": "sr",
+    "dictLang": "sr"
+  },
+  "sv_SE": {
+    "espeakVoice": "sv",
+    "dictLang": "sv"
+  },
+  "sw_CD": {
+    "espeakVoice": "sw",
+    "dictLang": "sw"
+  },
+  "te_IN": {
+    "espeakVoice": "te",
+    "dictLang": "te"
+  },
+  "tr_TR": {
+    "espeakVoice": "tr",
+    "dictLang": "tr"
+  },
+  "uk_UA": {
+    "espeakVoice": "uk",
+    "dictLang": "uk"
+  },
+  "ur_PK": {
+    "espeakVoice": "ur",
+    "dictLang": "ur"
+  },
+  "vi_VN": {
+    "espeakVoice": "vi",
+    "dictLang": "vi"
+  }
+}

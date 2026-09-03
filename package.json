@@ -1,0 +1,23 @@
+{
+  "name": "espeak-phonemizer",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Lightweight WASM build of eSpeak-NG exposing espeak_TextToPhonemesWithTerminator, trimmed to piper1-gpl's supported languages. Build artifacts only, consumed via local/relative import — not published to npm.",
+  "type": "module",
+  "license": "GPL-3.0-only",
+  "devDependencies": {
+    "@playwright/test": "^1.62.1"
+  },
+  "scripts": {
+    "build:native": "bash scripts/build-espeak-ng.sh",
+    "build:constants": "node scripts/gen-constants.mjs",
+    "build:voice-map": "node scripts/build-voice-map.mjs",
+    "build:data": "node scripts/trim-data.mjs",
+    "build:package-data": "bash scripts/package-data.sh",
+    "build:wasm": "bash scripts/build-wasm.sh",
+    "build": "bash scripts/build-all.sh",
+    "test:node": "node --test test/node/*.test.mjs",
+    "test:browser": "playwright test",
+    "test": "npm run test:node && npm run test:browser"
+  }
+}

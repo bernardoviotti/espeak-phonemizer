@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>espeak-phonemizer browser harness</title>
+  </head>
+  <body>
+    <pre id="output">running...</pre>
+    <script type="module">
+      import { initialize, setVoice, getPhonemes } from '/src/espeak.mjs';
+
+      async function run() {
+        await initialize('/dist/wasm');
+        setVoice('en-us');
+        const result = getPhonemes('Hello world. How are you?');
+        window.__testResult = result;
+        document.getElementById('output').textContent = JSON.stringify(result);
+      }
+
+      run().catch((err) => {
+        window.__testError = String(err && err.stack || err);
+        document.getElementById('output').textContent = 'ERROR: ' + window.__testError;
+      });
+    </script>
+  </body>
+</html>

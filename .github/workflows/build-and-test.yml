@@ -1,0 +1,41 @@
+name: build-and-test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: latest
+
+      - name: npm install
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+      - name: Node tests
+        run: npm run test:node
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Browser tests
+        run: npm run test:browser
+
+      - name: Size check
+        run: |
+          echo "wasm: $(du -h dist/wasm/espeak-ng.wasm | cut -f1)"
+          echo "data: $(du -h dist/wasm/espeak-ng.data | cut -f1)"

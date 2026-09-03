@@ -1,0 +1,47 @@
+diff --git a/src/include/compat/wchar.h b/src/include/compat/wchar.h
+index a0dc4d1f..e089a9f3 100644
+--- a/src/include/compat/wchar.h
++++ b/src/include/compat/wchar.h
+@@ -24,7 +24,42 @@
+ #endif
+ #else
+ #pragma GCC system_header // Silence "warning: #include_next is a GCC extension"
++#if defined(__EMSCRIPTEN__) && defined(WCTYPE_H_COMPAT_SHIM)
++/* Emscripten's <wchar.h> re-declares the isw*() functions that
++ * compat/wctype.h (if already included earlier in this translation unit)
++ * has macro-mapped to the ucd_is*() equivalents. Left alone, the macro
++ * substitution rewrites those redeclarations into conflicting ucd_is*()
++ * prototypes (isw*() takes wint_t, ucd_is*() takes codepoint_t). Undefine
++ * them for the duration of this include, then restore them immediately
++ * after so ucd-based classification is used everywhere else as intended. */
++#undef iswalnum
++#undef iswalpha
++#undef iswblank
++#undef iswcntrl
++#undef iswdigit
++#undef iswgraph
++#undef iswlower
++#undef iswprint
++#undef iswpunct
++#undef iswspace
++#undef iswupper
++#undef iswxdigit
+ #include_next <wchar.h>
++#define iswalnum  ucd_isalnum
++#define iswalpha  ucd_isalpha
++#define iswblank  ucd_isblank
++#define iswcntrl  ucd_iscntrl
++#define iswdigit  ucd_isdigit
++#define iswgraph  ucd_isgraph
++#define iswlower  ucd_islower
++#define iswprint  ucd_isprint
++#define iswpunct  ucd_ispunct
++#define iswspace  ucd_isspace
++#define iswupper  ucd_isupper
++#define iswxdigit ucd_isxdigit
++#else
++#include_next <wchar.h>
++#endif
+ #endif
+ 
+ #ifndef WCHAR_H_COMPAT_SHIM
