@@ -1,10 +1,40 @@
 {
   "name": "espeak-phonemizer",
-  "private": true,
   "version": "0.1.0",
-  "description": "Lightweight WASM build of eSpeak-NG exposing espeak_TextToPhonemesWithTerminator, trimmed to piper1-gpl's supported languages. Build artifacts only, consumed via local/relative import — not published to npm.",
+  "description": "Lightweight WASM build of eSpeak-NG for g2p (grapheme to phoneme conversion), built to be used with web implementations of Piper TTS.",
   "type": "module",
   "license": "GPL-3.0-only",
+  "engines": {
+    "node": ">=18"
+  },
+  "exports": {
+    ".": "./src/espeak.mjs",
+    "./constants": "./src/constants.mjs",
+    "./dist/*": "./dist/*"
+  },
+  "files": [
+    "src",
+    "dist",
+    "README.md",
+    "BUILDING.md",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "espeak",
+    "espeak-ng",
+    "phonemizer",
+    "phonemes",
+    "ipa",
+    "tts",
+    "text-to-speech",
+    "wasm",
+    "webassembly",
+    "piper"
+  ],
   "devDependencies": {
     "@playwright/test": "^1.62.1"
   },
@@ -16,6 +46,7 @@
     "build:bundle-data": "node scripts/bundle-data.mjs",
     "build:wasm": "bash scripts/build-wasm.sh",
     "build": "bash scripts/build-all.sh",
+    "prepack": "npm run build",
     "test:node": "node --test test/node/*.test.mjs",
     "test:browser": "playwright test",
     "test": "npm run test:node && npm run test:browser"

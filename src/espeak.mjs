@@ -14,10 +14,12 @@
 // why setVoice() is async, unlike espeakbridge.c's synchronous set_voice.
 //
 // Usage:
-//   import { initialize, setVoice, getPhonemes } from "./espeak.mjs";
-//   await initialize("./dist");       // wasm module + always-needed core data
+//   import { initialize, setVoice, getPhonemes } from "espeak-phonemizer";
+//   await initialize();               // Node: resolves this package's own dist/ automatically
 //   await setVoice("en-us");          // fetches en-us's bucket on first use
 //   getPhonemes("Hello world.");      // -> [{ phonemes, terminator, isSentenceEnd }]
+//   // Outside Node (browser/bundler), pass an explicit base path/URL:
+//   //   await initialize("https://your-cdn.example/espeak-phonemizer/dist");
 
 import createEspeakModule from '../dist/wasm/espeak-ng.mjs';
 import {
@@ -69,6 +71,21 @@ async function loadBucket(bucket) {
   }
 }
 
+// In Node, defaults to this package's own installed `dist/` directory, so
+// `initialize()` works with no arguments after `npm install`. There's no
+// sensible default outside Node (no "install location" to resolve relative
+// to) — browser/bundler callers must always pass an explicit distDir.
+async function defaultDistDir() {
+  if (!isNode) {
+    throw new Error(
+      'initialize() requires an explicit distDir argument outside Node.js ' +
+        "(e.g. a URL to wherever this package's dist/ directory is served from)."
+    );
+  }
+  const { fileURLToPath } = await import('node:url');
+  return fileURLToPath(new URL('../dist', import.meta.url));
+}
+
 /**
  * Loads the wasm module and the always-needed shared "core" language data
  * (phontab/phondata/phonindex/intonations), then calls espeak_Initialize.
@@ -77,14 +94,15 @@ async function loadBucket(bucket) {
  *
  * Safe to call more than once — subsequent calls are no-ops once loaded.
  *
- * @param {string} distDir base path/URL for this repo's `dist/` directory
- *   (containing both `wasm/` and `data/`), e.g. "./dist" (Node, relative to
- *   cwd) or an absolute URL (browser).
+ * @param {string} [distDir] base path/URL for this package's `dist/`
+ *   directory (containing both `wasm/` and `data/`), e.g. "./dist" or an
+ *   absolute URL. Defaults to this package's own installed location in
+ *   Node.js; required when called outside Node.
  */
 export async function initialize(distDir) {
   if (Module) return;
 
-  const base = distDir.replace(/\/+$/, '');
+  const base = (distDir ?? (await defaultDistDir())).replace(/\/+$/, '');
   dataDir = `${base}/data`;
 
   const manifestBytes = await readAsset(`${dataDir}/manifest.json`);
