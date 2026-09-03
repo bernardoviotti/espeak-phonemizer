@@ -27,6 +27,11 @@ espeak binding, [`espeakbridge.c`](https://github.com/OHF-Voice/piper1-gpl/blob/
 **Outside Node** (browser, bundler), pass an explicit base path/URL to
 `initialize()` pointing at wherever this package's `dist/` directory is
 served from — there's no "install location" to resolve automatically there.
+If that path's `data/` folder isn't reachable (a common gap: bundlers pick up
+`dist/wasm` automatically via the static import, but `dist/data` is only ever
+fetched dynamically by relative path, so it's easy to forget to serve/copy
+it), `initialize()` falls back to fetching this exact release's data bundle
+from the npm CDN ([jsDelivr](https://www.jsdelivr.com/)) instead.
 
 ## License
 

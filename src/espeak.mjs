@@ -86,6 +86,25 @@ async function defaultDistDir() {
   return fileURLToPath(new URL('../dist', import.meta.url));
 }
 
+async function fetchManifest(dir) {
+  const bytes = await readAsset(`${dir}/manifest.json`);
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+
+// Browser-only fallback used when the caller-supplied distDir's data/ isn't
+// reachable — e.g. the host app's bundler copied dist/wasm (picked up via
+// the static import above) but not dist/data (only ever fetched dynamically
+// by relative path, so bundlers commonly miss it). Reads this package's own
+// name/version from its package.json (resolved relative to this module, so
+// it works whether this file itself was loaded from node_modules or a CDN)
+// and points at that exact release's dist/data on the jsDelivr npm CDN, so
+// the fetched language data always matches the wasm build already loaded.
+async function npmDataDirFallback() {
+  const pkgBytes = await readAsset(new URL('../package.json', import.meta.url));
+  const { name, version } = JSON.parse(new TextDecoder().decode(pkgBytes));
+  return `https://cdn.jsdelivr.net/npm/${name}@${version}/dist/data`;
+}
+
 /**
  * Loads the wasm module and the always-needed shared "core" language data
  * (phontab/phondata/phonindex/intonations), then calls espeak_Initialize.
@@ -97,7 +116,9 @@ async function defaultDistDir() {
  * @param {string} [distDir] base path/URL for this package's `dist/`
  *   directory (containing both `wasm/` and `data/`), e.g. "./dist" or an
  *   absolute URL. Defaults to this package's own installed location in
- *   Node.js; required when called outside Node.
+ *   Node.js; required when called outside Node. In a browser, if `data/`
+ *   isn't reachable under this path (or the default), falls back to
+ *   fetching this exact release's data bundle from the npm CDN.
  */
 export async function initialize(distDir) {
   if (Module) return;
@@ -105,8 +126,19 @@ export async function initialize(distDir) {
   const base = (distDir ?? (await defaultDistDir())).replace(/\/+$/, '');
   dataDir = `${base}/data`;
 
-  const manifestBytes = await readAsset(`${dataDir}/manifest.json`);
-  manifest = JSON.parse(new TextDecoder().decode(manifestBytes));
+  try {
+    manifest = await fetchManifest(dataDir);
+  } catch (err) {
+    if (isNode) throw err;
+    // Browser fallback: the configured/default distDir doesn't serve
+    // dist/data (a common gap — bundlers pick up dist/wasm automatically via
+    // the static import above, but miss data/ since it's only ever fetched
+    // dynamically by relative path) — pull this exact release's data bundle
+    // from the npm CDN instead. The wasm binary itself still loads from
+    // `base` below, unaffected.
+    dataDir = await npmDataDirFallback();
+    manifest = await fetchManifest(dataDir);
+  }
 
   const loadedModule = await createEspeakModule({
     locateFile: (filename) => `${base}/wasm/${filename}`,

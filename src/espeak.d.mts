@@ -31,7 +31,9 @@ export interface PhonemeResult {
  * @param distDir base path/URL for this package's `dist/` directory
  *   (containing both `wasm/` and `data/`), e.g. "./dist" or an absolute URL.
  *   Defaults to this package's own installed location in Node.js; required
- *   when called outside Node.
+ *   when called outside Node. In a browser, if `data/` isn't reachable under
+ *   this path, falls back to fetching this exact release's data bundle from
+ *   the npm CDN.
  */
 export declare function initialize(distDir?: string): Promise<void>;
 
