@@ -7,9 +7,16 @@
   "engines": {
     "node": ">=18"
   },
+  "types": "./src/espeak.d.mts",
   "exports": {
-    ".": "./src/espeak.mjs",
-    "./constants": "./src/constants.mjs",
+    ".": {
+      "types": "./src/espeak.d.mts",
+      "default": "./src/espeak.mjs"
+    },
+    "./constants": {
+      "types": "./src/constants.d.mts",
+      "default": "./src/constants.mjs"
+    },
     "./dist/*": "./dist/*"
   },
   "files": [
