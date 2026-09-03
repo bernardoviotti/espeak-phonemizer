@@ -13,7 +13,7 @@
     "build:constants": "node scripts/gen-constants.mjs",
     "build:voice-map": "node scripts/build-voice-map.mjs",
     "build:data": "node scripts/trim-data.mjs",
-    "build:package-data": "bash scripts/package-data.sh",
+    "build:bundle-data": "node scripts/bundle-data.mjs",
     "build:wasm": "bash scripts/build-wasm.sh",
     "build": "bash scripts/build-all.sh",
     "test:node": "node --test test/node/*.test.mjs",

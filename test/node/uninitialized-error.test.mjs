@@ -7,8 +7,8 @@ import { getPhonemes, setVoice } from '../../src/espeak.mjs';
 // rather than a wasm-level crash. Relies on `node --test` isolating each test
 // file into its own process, so this module's singleton starts out unset.
 
-test('setVoice throws a clear error if called before initialize', () => {
-  assert.throws(() => setVoice('en-us'), /not initialized/);
+test('setVoice rejects with a clear error if called before initialize', async () => {
+  await assert.rejects(() => setVoice('en-us'), /not initialized/);
 });
 
 test('getPhonemes throws a clear error if called before initialize', () => {

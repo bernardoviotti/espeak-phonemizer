@@ -38,4 +38,4 @@ jobs:
       - name: Size check
         run: |
           echo "wasm: $(du -h dist/wasm/espeak-ng.wasm | cut -f1)"
-          echo "data: $(du -h dist/wasm/espeak-ng.data | cut -f1)"
+          du -h dist/data/*.data

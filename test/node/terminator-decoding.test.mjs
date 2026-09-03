@@ -4,11 +4,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { initialize, setVoice, getPhonemes } from '../../src/espeak.mjs';
 
-const dataDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '../../dist/wasm');
+const distDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '../../dist');
 
 test('decodes comma / period / trailing-unterminated-clause terminators correctly', async () => {
-  await initialize(dataDir);
-  setVoice('en-us');
+  await initialize(distDir);
+  await setVoice('en-us');
 
   // "one, two." has three clauses: "one" (comma), "two" (period+sentence-end),
   // and a final empty clause once the text pointer is exhausted (getPhonemes
@@ -25,8 +25,8 @@ test('decodes comma / period / trailing-unterminated-clause terminators correctl
 });
 
 test('decodes question and exclamation terminators', async () => {
-  await initialize(dataDir);
-  setVoice('en-us');
+  await initialize(distDir);
+  await setVoice('en-us');
 
   const question = getPhonemes('Is this a question?');
   assert.equal(question[question.length - 1].terminator, '?');

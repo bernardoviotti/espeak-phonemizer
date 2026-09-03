@@ -25,14 +25,13 @@
 // since the former is small and self-contained but we don't want to assume no
 // fallback dependency on the latter. Fails loudly if anything is missing.
 
-import { readFileSync, writeFileSync, mkdirSync, cpSync, readdirSync, statSync, existsSync } from 'node:fs';
+import { readFileSync, mkdirSync, cpSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const FULL_DATA_DIR = path.join(ROOT, 'build/espeak-ng-native-install/share/espeak-ng-data');
 const OUT_DIR = path.join(ROOT, 'build/espeak-ng-data-trimmed');
-const MANIFEST_PATH = path.join(ROOT, 'dist/manifest.json');
 
 const ALWAYS_FILES = ['phontab', 'phondata', 'phonindex', 'intonations'];
 
@@ -121,20 +120,11 @@ function main() {
     throw new Error(`${errors.length} unresolved voice-map.json entries — see above`);
   }
 
-  mkdirSync(path.dirname(MANIFEST_PATH), { recursive: true });
   const totalBytes = included.reduce((sum, f) => sum + f.bytes, 0);
-  const manifest = {
-    generatedAt: new Date().toISOString(),
-    languages: Object.keys(voiceMap).sort(),
-    totalBytes,
-    files: included.sort((a, b) => a.path.localeCompare(b.path)),
-  };
-  writeFileSync(MANIFEST_PATH, JSON.stringify(manifest, null, 2) + '\n');
-
   console.log(`trimmed data: ${OUT_DIR}`);
   console.log(`  ${included.length} files, ${(totalBytes / 1024 / 1024).toFixed(2)} MiB`);
   console.log(`  ${Object.keys(voiceMap).length} piper languages covered`);
-  console.log(`manifest: ${MANIFEST_PATH}`);
+  console.log('(run scripts/bundle-data.mjs next to produce dist/data/*.data + manifest.json)');
 }
 
 main();

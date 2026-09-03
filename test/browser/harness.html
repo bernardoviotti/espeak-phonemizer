@@ -10,8 +10,8 @@
       import { initialize, setVoice, getPhonemes } from '/src/espeak.mjs';
 
       async function run() {
-        await initialize('/dist/wasm');
-        setVoice('en-us');
+        await initialize('/dist');
+        await setVoice('en-us');
         const result = getPhonemes('Hello world. How are you?');
         window.__testResult = result;
         document.getElementById('output').textContent = JSON.stringify(result);

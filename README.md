@@ -23,7 +23,8 @@ git submodule update --init
 npm run build
 ```
 
-Produces `dist/wasm/espeak-ng.{mjs,wasm,data}` and `dist/manifest.json`.
+Produces `dist/wasm/espeak-ng.{mjs,wasm}` and `dist/data/` (bucketed language
+data + `manifest.json`).
 
 ### Why two builds?
 
@@ -57,23 +58,59 @@ everywhere on Emscripten too, exactly as upstream intends.
 | `scripts/build-espeak-ng.sh` | `libespeak-ng.a`, `libucd.a`, full `espeak-ng-data` |
 | `scripts/gen-constants.mjs` | `src/constants.mjs` (espeak API constants) |
 | `scripts/build-voice-map.mjs` | `scripts/voice-map.json` (manually reviewed, checked in — not run by `npm run build`) |
-| `scripts/trim-data.mjs` | `build/espeak-ng-data-trimmed/`, `dist/manifest.json` |
-| `scripts/package-data.sh` | `dist/wasm/espeak-ng.data{,.js}` |
+| `scripts/trim-data.mjs` | `build/espeak-ng-data-trimmed/` |
+| `scripts/bundle-data.mjs` | `dist/data/{manifest.json,*.data}` (size-capped buckets, see below) |
 | `scripts/build-wasm.sh` | `dist/wasm/espeak-ng.{mjs,wasm}` |
+
+### How language data is split
+
+Loading all 53 languages' data on every `initialize()` call would mean an
+oversized download for sessions that only ever use one or two languages. So
+`scripts/bundle-data.mjs` splits the trimmed data into several `.data`
+"buckets", loaded on demand:
+
+- **`core.data`** (~700 KB): `phontab`/`phondata`/`phonindex`/`intonations`
+  plus *every* voice's `lang/<family>/<id>` definition file (small — the
+  53 lang files total only ~200 KB together). Loaded eagerly, once, at
+  `initialize()`.
+- **Per-dict-language buckets** (`bundle-0.data`, `bundle-1.data`, ...): the
+  actual compiled dictionaries (`<dictLang>_dict`, the bulk of the size),
+  bin-packed together with a soft ~2 MB target per bucket, sorted so voices
+  sharing one dictionary (`es_ES`/`es_MX`/`es_AR` → `es_dict`) always land in
+  the same bucket. Fetched lazily the first time `setVoice()` is called for a
+  voice in that bucket, then cached for the rest of the session.
+- A dictionary that alone exceeds the ~2 MB target — currently only `ru_dict`,
+  8.6 MB, from the `EXTRA_ru` build flag — simply becomes its own oversized
+  bucket (`ru.data`), since a single dictionary file can't be split further.
+
+**Why `lang/` files all live in the eager core bucket, not split per-bucket:**
+espeak-ng builds its internal voice list by scanning `espeak-ng-data/lang/**`
+exactly once, lazily, the first time any voice-selecting function runs — and
+never rescans after that (see `SelectVoiceByName` in `voices.c`). A voice
+whose `lang/` file isn't present yet at that first scan is never found by
+`espeak_SetVoiceByName` afterward, even if the file is added to the virtual
+filesystem later. Since all `lang/` files together are tiny (~200 KB), keeping
+them all in the always-loaded core bucket sidesteps this entirely, while the
+much larger dictionary files stay lazily bucketed (a dictionary only needs to
+be present at the moment `setVoice()` is actually called for that voice,
+which the on-demand loading already guarantees).
 
 ## Usage
 
 ```js
 import { initialize, setVoice, getPhonemes } from "./src/espeak.mjs";
 
-await initialize("./dist/wasm"); // loads the wasm module + preloaded language data once
-setVoice("en-us");
+await initialize("./dist"); // loads the wasm module + always-needed core data once
+await setVoice("en-us");    // fetches en-us's dictionary bucket on first use
 
 const result = getPhonemes("Hello world. How are you?");
 // [
 //   { phonemes: "həlˈoʊ wˈɜːld", terminator: ".", isSentenceEnd: true },
 //   { phonemes: "hˈaʊ ɑːɹ juː", terminator: "?", isSentenceEnd: true },
 // ]
+
+await setVoice("ru"); // fetches ru's (larger) bucket the first time it's used
+await setVoice("en-us"); // already loaded — no re-fetch
 ```
 
 `initialize`, `setVoice`, and `getPhonemes` mirror piper1-gpl's own Python
@@ -82,14 +119,17 @@ name-for-name. No wasm pointers or manual memory management appear in this
 API — `getPhonemes` handles the underlying `espeak_TextToPhonemesWithTerminator`
 clause loop internally, returning one `{ phonemes, terminator, isSentenceEnd }`
 entry per clause (`terminator` is one of `.`, `?`, `!`, `,`, `:`, `;`, or `""`).
+The one intentional divergence from `espeakbridge.c`: `setVoice()` is async
+here, since it may need to fetch a language's dictionary bucket on first use
+(`espeakbridge.c`'s Python `set_voice` is synchronous because its data is
+always already on disk).
 
-`initialize(dataDir)`'s `dataDir` is the base path/URL to fetch (browser) or
-read (Node) the built wasm assets from — e.g. `"./dist/wasm"` locally, or an
-absolute URL when serving from elsewhere. It is unrelated to the internal
-espeak-ng data path, which is baked into the preloaded package.
+`initialize(distDir)`'s `distDir` is the base path/URL for this repo's whole
+`dist/` directory (containing both `wasm/` and `data/`) — e.g. `"./dist"`
+locally, or an absolute URL when serving from elsewhere.
 
 Only voices covered by `scripts/voice-map.json` are bundled; `setVoice()`
-throws a clear `Error` for anything else (e.g. `"ja"` for Japanese).
+rejects with a clear `Error` for anything else (e.g. `"ja"` for Japanese).
 
 ## Testing
 
@@ -101,13 +141,16 @@ npm test               # both
 
 ## Sizes (measured)
 
-- `espeak-ng.wasm`: ~300 KB
-- `espeak-ng.mjs` (glue): ~76 KB
-- `espeak-ng.data` (53 languages, preloaded): ~14 MB
+- `espeak-ng.wasm`: ~320 KB
+- `espeak-ng.mjs` (glue): ~64 KB
+- `dist/data/core.data` (always loaded): ~700 KB
+- `dist/data/bundle-0.data`, `bundle-1.data`: ~2 MB each (bin-packed dictionaries)
+- `dist/data/bundle-2.data`: ~740 KB
+- `dist/data/ru.data`: ~8.6 MB (its own bucket — see "How language data is split")
 
-Data is loaded once, eagerly, at `initialize()` — there is no per-language
-lazy loading. `ru_dict` (from the `EXTRA_ru` build flag, matching piper1-gpl's
-own flags) is noticeably larger than most other per-language dictionaries.
+A typical session using one non-Russian language loads `espeak-ng.wasm` +
+`espeak-ng.mjs` + `core.data` + one ~1–2 MB bucket — roughly 2–3 MB total,
+instead of the full ~14 MB every language's data adds up to.
 
 ## License
 

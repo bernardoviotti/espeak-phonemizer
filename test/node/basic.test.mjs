@@ -4,11 +4,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { initialize, setVoice, getPhonemes } from '../../src/espeak.mjs';
 
-const dataDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '../../dist/wasm');
+const distDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '../../dist');
 
 test('initialize -> setVoice -> getPhonemes basic smoke test', async () => {
-  await initialize(dataDir);
-  setVoice('en-us');
+  await initialize(distDir);
+  await setVoice('en-us');
 
   const result = getPhonemes('Hello world. How are you?');
 

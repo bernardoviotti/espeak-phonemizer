@@ -4,9 +4,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { initialize, setVoice } from '../../src/espeak.mjs';
 
-const dataDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '../../dist/wasm');
+const distDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '../../dist');
 
-test('setVoice throws cleanly for a language excluded from this build (Japanese)', async () => {
-  await initialize(dataDir);
-  assert.throws(() => setVoice('ja'), /Failed to set voice: ja/);
+test('setVoice rejects cleanly for a language excluded from this build (Japanese)', async () => {
+  await initialize(distDir);
+  await assert.rejects(() => setVoice('ja'), /Unknown or unbundled voice: ja/);
 });

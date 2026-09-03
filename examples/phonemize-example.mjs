@@ -1,12 +1,12 @@
 // Run with: node examples/phonemize-example.mjs
-// (after `npm run build` has produced dist/wasm/espeak-ng.{mjs,wasm,data})
+// (after `npm run build` has produced dist/wasm/ and dist/data/)
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { initialize, setVoice, getPhonemes } from '../src/espeak.mjs';
 
-const dataDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '../dist/wasm');
+const distDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '../dist');
 
-await initialize(dataDir);
-setVoice('en-us');
+await initialize(distDir);
+await setVoice('en-us');
 
 console.log(getPhonemes('Hello world. How are you?'));

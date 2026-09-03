@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
 # Links the espeak-ng static libs (scripts/build-espeak-ng.sh's output) into a
-# modern ES6 wasm module, with the preloaded data package (package-data.sh's
-# output) pulled in as a --pre-js so a single module instantiation gets both
-# the wasm binary and its data ready. No custom glue C file: the real
-# espeak_Initialize / espeak_SetVoiceByName / espeak_TextToPhonemesWithTerminator
-# symbols are kept alive and exported directly by listing them in
-# EXPORTED_FUNCTIONS — src/espeak.mjs cwrap's them under their real C names.
+# modern ES6 wasm module. No custom glue C file: the real espeak_Initialize /
+# espeak_SetVoiceByName / espeak_TextToPhonemesWithTerminator symbols are kept
+# alive and exported directly by listing them in EXPORTED_FUNCTIONS —
+# src/espeak.mjs cwrap's them under their real C names. Language data is NOT
+# baked into this build (no --pre-js here) — it's loaded on demand at runtime
+# by src/espeak.mjs from the bucket files scripts/bundle-data.mjs produces
+# under dist/data/, via Module.FS.writeFile. FORCE_FILESYSTEM=1 and the FS
+# runtime method are still required for that.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 INSTALL="$ROOT/build/espeak-ng-install"
 OUT_DIR="$ROOT/dist/wasm"
-DATA_JS="$OUT_DIR/espeak-ng.data.js"
 
 if ! command -v emcc >/dev/null 2>&1; then
   echo "error: emcc not found. Install/activate the Emscripten SDK first." >&2
@@ -23,10 +24,6 @@ for f in "$INSTALL/lib/libespeak-ng.a" "$INSTALL/lib/libucd.a"; do
     exit 1
   fi
 done
-if [ ! -f "$DATA_JS" ]; then
-  echo "error: $DATA_JS not found — run scripts/package-data.sh first." >&2
-  exit 1
-fi
 
 mkdir -p "$OUT_DIR"
 
@@ -42,7 +39,6 @@ emcc \
   -sFORCE_FILESYSTEM=1 \
   -sEXPORTED_RUNTIME_METHODS=cwrap,ccall,getValue,setValue,UTF8ToString,stringToUTF8,lengthBytesUTF8,FS \
   -sEXPORTED_FUNCTIONS=_malloc,_free,_espeak_Initialize,_espeak_SetVoiceByName,_espeak_TextToPhonemesWithTerminator,_espeak_ListVoices,_espeak_Terminate \
-  --pre-js "$DATA_JS" \
   -O3
 
 echo "== Verifying build outputs =="

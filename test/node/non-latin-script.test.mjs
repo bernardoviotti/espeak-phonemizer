@@ -4,11 +4,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { initialize, setVoice, getPhonemes } from '../../src/espeak.mjs';
 
-const dataDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '../../dist/wasm');
+const distDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '../../dist');
 
-test('phonemizes Russian (Cyrillic, EXTRA_ru dictionary)', async () => {
-  await initialize(dataDir);
-  setVoice('ru');
+test('phonemizes Russian (Cyrillic, EXTRA_ru dictionary, its own oversized bucket)', async () => {
+  await initialize(distDir);
+  await setVoice('ru');
 
   const result = getPhonemes('Привет, как дела?');
   assert.ok(result.length > 0);
@@ -17,8 +17,8 @@ test('phonemizes Russian (Cyrillic, EXTRA_ru dictionary)', async () => {
 });
 
 test('phonemizes Arabic (right-to-left, abjad script)', async () => {
-  await initialize(dataDir);
-  setVoice('ar');
+  await initialize(distDir);
+  await setVoice('ar');
 
   const result = getPhonemes('مرحبا بالعالم.');
   assert.ok(result.length > 0);
