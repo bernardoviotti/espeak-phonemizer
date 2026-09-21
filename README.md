@@ -1,6 +1,6 @@
 # espeak-phonemizer
 
-A lightweight WebAssembly build of [eSpeak NG](https://github.com/espeak-ng/espeak-ng) trimmed to the 53 languages and built to be used with web implementations of [piper1-gpl](https://github.com/OHF-Voice/piper1-gpl). Language data is optimized to be fetched on demand, only for the voices you actually use. Japanese, Hebrew, and Mandarin are excluded, since piper phonemizes those with OpenJTalk / a Hebrew phonemizer / pinyin instead of raw espeak IPA.
+A lightweight WebAssembly build of [eSpeak NG](https://github.com/espeak-ng/espeak-ng) built to be used with web implementations of [piper1-gpl](https://github.com/OHF-Voice/piper1-gpl). Language data is optimized to be fetched on demand, only for the voices you actually use. Only the 53 languages supported by Piper are available, among the excluded voices are Japanese, Hebrew, and Mandarin, since Piper falls back to other g2p solutions for those languages.
 
 ```sh
 npm install espeak-phonemizer

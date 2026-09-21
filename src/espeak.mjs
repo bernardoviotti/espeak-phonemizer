@@ -1,17 +1,13 @@
 // JS-native wrapper around the espeak-ng wasm module (dist/wasm/espeak-ng.mjs),
 // mirroring piper1-gpl's own espeak binding, src/piper/espeakbridge.c, name for
-// name: initialize(distDir) / setVoice(voice) / getPhonemes(text). No wasm
-// pointers, _malloc, or setValue/getValue appear in this module's exports —
-// getPhonemes runs the espeak_TextToPhonemesWithTerminator clause loop
-// internally, the same role the C loop plays inside py_get_phonemes.
+// name: initialize(distDir) / setVoice(voice) / getPhonemes(text).
 //
 // Language data is loaded on demand: scripts/bundle-data.mjs groups voices
 // that share a dictionary (e.g. es_ES/es_MX/es_AR all use es_dict) into
 // size-capped "bucket" files under dist/data/. setVoice() fetches/reads a
 // voice's bucket the first time it's needed (subsequent calls for a voice in
 // an already-loaded bucket are free) and writes its contents into the wasm
-// module's virtual filesystem before calling espeak_SetVoiceByName. This is
-// why setVoice() is async, unlike espeakbridge.c's synchronous set_voice.
+// module's virtual filesystem before calling espeak_SetVoiceByName. 
 //
 // Usage:
 //   import { initialize, setVoice, getPhonemes } from "espeak-phonemizer";
@@ -28,6 +24,7 @@ import {
   AUDIO_OUTPUT_SYNCHRONOUS,
   decodeTerminator,
 } from './constants.mjs';
+import { PACKAGE_VERSION } from './version.mjs';
 
 // The virtual filesystem path bucket files get written under (matches the
 // path passed to espeak_Initialize below).
@@ -77,33 +74,17 @@ async function loadBucket(bucket) {
 // to) — browser/bundler callers must always pass an explicit distDir.
 async function defaultDistDir() {
   if (!isNode) {
-    throw new Error(
-      'initialize() requires an explicit distDir argument outside Node.js ' +
-        "(e.g. a URL to wherever this package's dist/ directory is served from)."
-    );
+    return '';
   }
   const { fileURLToPath } = await import('node:url');
   return fileURLToPath(new URL('../dist', import.meta.url));
 }
 
 async function fetchManifest(dir) {
-  const bytes = await readAsset(`${dir}/manifest.json`);
-  return JSON.parse(new TextDecoder().decode(bytes));
+  const response = await fetch(`${dir}/manifest.json`);
+  return await response.json();
 }
 
-// Browser-only fallback used when the caller-supplied distDir's data/ isn't
-// reachable — e.g. the host app's bundler copied dist/wasm (picked up via
-// the static import above) but not dist/data (only ever fetched dynamically
-// by relative path, so bundlers commonly miss it). Reads this package's own
-// name/version from its package.json (resolved relative to this module, so
-// it works whether this file itself was loaded from node_modules or a CDN)
-// and points at that exact release's dist/data on the jsDelivr npm CDN, so
-// the fetched language data always matches the wasm build already loaded.
-async function npmDataDirFallback() {
-  const pkgBytes = await readAsset(new URL('../package.json', import.meta.url));
-  const { name, version } = JSON.parse(new TextDecoder().decode(pkgBytes));
-  return `https://cdn.jsdelivr.net/npm/${name}@${version}/dist/data`;
-}
 
 /**
  * Loads the wasm module and the always-needed shared "core" language data
@@ -123,25 +104,24 @@ async function npmDataDirFallback() {
 export async function initialize(distDir) {
   if (Module) return;
 
-  const base = (distDir ?? (await defaultDistDir())).replace(/\/+$/, '');
-  dataDir = `${base}/data`;
+  if (!distDir) {
+    // Attempt to serve files from default '/dist' directory.
+    distDir = (await defaultDistDir()).replace(/\\+$/);
+  }
+
+  dataDir = `${distDir}/data`;  
 
   try {
     manifest = await fetchManifest(dataDir);
   } catch (err) {
-    if (isNode) throw err;
-    // Browser fallback: the configured/default distDir doesn't serve
-    // dist/data (a common gap — bundlers pick up dist/wasm automatically via
-    // the static import above, but miss data/ since it's only ever fetched
-    // dynamically by relative path) — pull this exact release's data bundle
-    // from the npm CDN instead. The wasm binary itself still loads from
-    // `base` below, unaffected.
-    dataDir = await npmDataDirFallback();
+    // Fall back to loading data from the cdn
+    distDir = `https://cdn.jsdelivr.net/npm/espeak-phonemizer@${PACKAGE_VERSION}/dist`
+    dataDir = `https://cdn.jsdelivr.net/npm/espeak-phonemizer@${PACKAGE_VERSION}/dist/data`
     manifest = await fetchManifest(dataDir);
   }
 
   const loadedModule = await createEspeakModule({
-    locateFile: (filename) => `${base}/wasm/${filename}`,
+    locateFile: (filename) => `${distDir}/wasm/${filename}`,
   });
 
   Module = loadedModule;

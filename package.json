@@ -1,26 +1,25 @@
 {
   "name": "espeak-phonemizer",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Lightweight WASM build of eSpeak-NG for g2p (grapheme to phoneme conversion), built to be used with web implementations of Piper TTS.",
   "type": "module",
   "license": "GPL-3.0-only",
   "engines": {
     "node": ">=18"
   },
-  "types": "./src/espeak.d.mts",
+  "types": "./dist/espeak.d.mts",
   "exports": {
     ".": {
-      "types": "./src/espeak.d.mts",
-      "default": "./src/espeak.mjs"
+      "types": "./dist/espeak.d.mts",
+      "default": "./dist/espeak.mjs"
     },
     "./constants": {
-      "types": "./src/constants.d.mts",
-      "default": "./src/constants.mjs"
+      "types": "./dist/constants.d.mts",
+      "default": "./dist/constants.mjs"
     },
     "./dist/*": "./dist/*"
   },
   "files": [
-    "src",
     "dist",
     "README.md",
     "BUILDING.md",
@@ -48,6 +47,7 @@
   "scripts": {
     "build:native": "bash scripts/build-espeak-ng.sh",
     "build:constants": "node scripts/gen-constants.mjs",
+    "build:version": "node scripts/gen-package-version.mjs",
     "build:voice-map": "node scripts/build-voice-map.mjs",
     "build:data": "node scripts/trim-data.mjs",
     "build:bundle-data": "node scripts/bundle-data.mjs",
